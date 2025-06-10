@@ -2,7 +2,7 @@ from flask import Blueprint, Response, request
 import services.artwork_service as artwork_service
 from utils.function import send_response, send_error, check_date
 
-artwork_controller = Blueprint('artwork', __name__, url_prefix='/artwork')
+artwork_controller = Blueprint('artwork', __name__, url_prefix='/artworks')
 
 
 @artwork_controller.route('', methods=['GET'])
@@ -61,3 +61,16 @@ def post_artwork() -> tuple[Response, int]:
         return send_response(status=201, messages="Artwork created", data=new_artwork)
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+
+@artwork_controller.route('/page/<int:page_number>', methods=['GET'])
+def get_artwork(page_number: int) -> tuple[Response, int]:
+    if page_number < 1:
+        return send_error(status=400, message="page_number is already superior or egal to 1")
+
+    info_artworks = artwork_service.get_artwork_pagination_info(page_number)
+
+    if info_artworks:
+        return send_response(data=info_artworks)
+    else:
+        return send_error(status=404, message="Artworks not found")

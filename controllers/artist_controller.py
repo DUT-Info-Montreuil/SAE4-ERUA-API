@@ -71,3 +71,15 @@ def post_artist() -> tuple[Response, int]:
             return send_error(status=500, message="Failed to create artist. Please try again later.")
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+@artist_controller.route('/page/<int:page_number>', methods=['GET'])
+def get_artist(page_number: int) -> tuple[Response, int]:
+    if page_number < 1:
+        return send_error(status=400, message="page_number is already superior or egal to 1")
+
+    info_artists = artist_service.get_artist_pagination_info(page_number)
+
+    if info_artists:
+        return send_response(data=info_artists)
+    else:
+        return send_error(status=404, message="Artists not found")
