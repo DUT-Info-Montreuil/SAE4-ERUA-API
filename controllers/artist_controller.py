@@ -71,3 +71,35 @@ def post_artist() -> tuple[Response, int]:
             return send_error(status=500, message="Failed to create artist. Please try again later.")
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+
+@artist_controller.route('/<int:artist_id>/artworks', methods=['GET'])
+def get_artist_with_artworks(artist_id: int) -> tuple[Response, int]:
+    artist_with_artworks = artist_service.get_artist_with_artworks(artist_id)
+    if artist_with_artworks:
+        return send_response(data=artist_with_artworks)
+    else:
+        return send_error(status=404, message="Artist not found")
+
+
+@artist_controller.route('/<int:artist_id>/artworks', methods=['POST'])
+def post_create_relation(artist_id: int) -> tuple[Response, int]:
+
+    # Required field : Art_ArtworkID
+
+    data = request.get_json()
+
+    if not data or 'Art_ArtworkID' not in data:
+        return send_error(status=400, message="Art_ArtworkID is required")
+
+    Art_ArtworkID: int = data['Art_ArtworkID']
+
+    try:
+        relation = artist_service.post_create_relation(artist_id, Art_ArtworkID)
+
+        if relation:
+            return send_response(status=201, messages="Relation created", data=relation)
+        else:
+            return send_error(status=500, message="Failed to create created relation. Please try again later.")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")
