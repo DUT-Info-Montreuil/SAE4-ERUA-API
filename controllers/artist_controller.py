@@ -114,3 +114,25 @@ def post_create_relation(artist_id: int) -> tuple[Response, int]:
             return send_error(status=500, message="Failed to create created relation. Please try again later.")
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+@artist_controller.route('/<int:artist_id>', methods=['PUT'])
+def update_artist(artist_id: int) -> tuple[Response, int]:
+    data = request.get_json()
+
+    if not data:
+        return send_error(status=400, message="No data provided")
+
+    if 'Ar_BirthDay' in data and not check_date(data['Ar_BirthDay']):
+        return send_error(status=400, message="Ar_BirthDay must be a valid date")
+
+    if 'Ar_DeathDay' in data and data['Ar_DeathDay'] and not check_date(data['Ar_DeathDay']):
+        return send_error(status=400, message="Ar_DeathDay must be a valid date")
+
+    try:
+        updated_artist = artist_service.update_artist_by_id(artist_id, data)
+        if updated_artist:
+            return send_response(messages="Artist updated", data=updated_artist)
+        else:
+            return send_error(status=404, message="Artist not found")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")

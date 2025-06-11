@@ -144,7 +144,6 @@ def get_artwork_by_page(page_number: int, page_size: int = 16):
     Returns:
         list: Liste des artworks pour la page demandée
     """
-    # Validation du numéro de page
     if page_number < 1:
         raise ValueError("Le numéro de page doit être supérieur ou égal à 1")
 
@@ -187,7 +186,7 @@ def get_artwork_pagination_info(page_number: int, page_size: int = 16):
         dict: Dictionnaire contenant les artworks et les infos de pagination
     """
     total_count = get_total_artwork_count()
-    total_pages = (total_count + page_size - 1) // page_size  # Calcul du nombre total de pages
+    total_pages = (total_count + page_size - 1) // page_size
 
     artwork_list = get_artwork_by_page(page_number, page_size)
 

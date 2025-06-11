@@ -64,19 +64,6 @@ def post_artwork() -> tuple[Response, int]:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
 
 
-@artwork_controller.route('/page/<int:page_number>', methods=['GET'])
-def get_artwork(page_number: int) -> tuple[Response, int]:
-    if page_number < 1:
-        return send_error(status=400, message="page_number is already superior or egal to 1")
-
-    info_artworks = artwork_service.get_artwork_pagination_info(page_number)
-
-    if info_artworks:
-        return send_response(data=info_artworks)
-    else:
-        return send_error(status=404, message="Artworks not found")
-
-
 @artwork_controller.route('/<int:artwork_id>/inspires', methods=['GET'])
 def get_artworks_inspired_by(artwork_id: int) -> tuple[Response, int]:
     artworks = artwork_service.get_artworks_inspired_by(artwork_id)

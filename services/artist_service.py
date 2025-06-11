@@ -159,3 +159,32 @@ def get_artist_with_artworks(Ar_ArtistID: int):
             'artworks': results[0]['artworks']
         }
     return None
+
+def update_artist_by_id(Ar_ArtistID: int, fields: dict):
+    query = """
+    MATCH (a:Artist {Ar_ArtistID: $Ar_ArtistID})
+    SET
+        a.Ar_FirstName = coalesce($Ar_FirstName, a.Ar_FirstName),
+        a.Ar_LastName = coalesce($Ar_LastName, a.Ar_LastName),
+        a.Ar_BirthDay = coalesce($Ar_BirthDay, a.Ar_BirthDay),
+        a.Ar_Nationality = coalesce($Ar_Nationality, a.Ar_Nationality),
+        a.Ar_Biography = coalesce($Ar_Biography, a.Ar_Biography),
+        a.Ar_ImageURL = coalesce($Ar_ImageURL, a.Ar_ImageURL),
+        a.Ar_DeathDay = coalesce($Ar_DeathDay, a.Ar_DeathDay)
+    RETURN a
+    """
+
+    params = {
+        'Ar_ArtistID': Ar_ArtistID,
+        'Ar_FirstName': fields.get('Ar_FirstName'),
+        'Ar_LastName': fields.get('Ar_LastName'),
+        'Ar_BirthDay': fields.get('Ar_BirthDay'),
+        'Ar_Nationality': fields.get('Ar_Nationality'),
+        'Ar_Biography': fields.get('Ar_Biography'),
+        'Ar_ImageURL': fields.get('Ar_ImageURL'),
+        'Ar_DeathDay': fields.get('Ar_DeathDay')
+    }
+
+    results = execute_query(query=query, parameters=params)
+    return results[0]['a'] if results else None
+
