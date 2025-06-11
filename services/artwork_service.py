@@ -9,12 +9,12 @@ def get_artwork():
     return artwork
 
 
-def get_artwork_by_id(Ar_ArtworkID: int):
+def get_artwork_by_id(Art_ArtworkID: int):
     query = """
-    MATCH (a:Artwork {Ar_ArtworkID: $Ar_ArtworkID})
+    MATCH (a:Artwork {Art_ArtworkID: $Art_ArtworkID})
     RETURN a
     """
-    results = execute_query(query=query, parameters={'Ar_ArtworkID': Ar_ArtworkID})
+    results = execute_query(query=query, parameters={'Art_ArtworkID': Art_ArtworkID})
     if results:
         return results[0]['a']
     return None
