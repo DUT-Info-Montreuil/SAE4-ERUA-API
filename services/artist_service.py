@@ -188,3 +188,11 @@ def update_artist_by_id(Ar_ArtistID: int, fields: dict):
     results = execute_query(query=query, parameters=params)
     return results[0]['a'] if results else None
 
+def delete_artist_by_id(Ar_ArtistID: int):
+    query = """
+    MATCH (a:Artist {Ar_ArtistID: $Ar_ArtistID})
+    DETACH DELETE a
+    RETURN COUNT(a) AS deletedCount
+    """
+    results = execute_query(query=query, parameters={'Ar_ArtistID': Ar_ArtistID})
+    return results and results[0]['deletedCount'] > 0

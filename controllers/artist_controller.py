@@ -136,3 +136,15 @@ def update_artist(artist_id: int) -> tuple[Response, int]:
             return send_error(status=404, message="Artist not found")
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+
+@artist_controller.route('/<int:artist_id>', methods=['DELETE'])
+def delete_artist(artist_id: int) -> tuple[Response, int]:
+    try:
+        deleted = artist_service.delete_artist_by_id(artist_id)
+        if deleted:
+            return send_response(status=200, messages="Artist deleted")
+        else:
+            return send_error(status=404, message="Artist not found")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")
