@@ -2,8 +2,10 @@ from flask import Flask, jsonify, request, Blueprint
 from controllers.artist_controller import artist_controller
 from controllers.artwork_controller import artwork_controller
 from utils.function import send_error
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 app.register_blueprint(artist_controller)
 app.register_blueprint(artwork_controller)
