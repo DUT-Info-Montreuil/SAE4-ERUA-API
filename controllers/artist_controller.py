@@ -24,7 +24,7 @@ def get_artist_by_id(artist_id: int) -> tuple[Response, int]:
 def post_artist() -> tuple[Response, int]:
 
     # Required field : Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL
-    # Optionnal field : Ar_DeathDay
+    # Optionnal field : Ar_DeathDay, Ar_CountryBirth, Ar_CountryDeath, Ar_Movement
 
     data = request.get_json()
 
@@ -54,16 +54,20 @@ def post_artist() -> tuple[Response, int]:
     Ar_Biography: str = data['Ar_Biography']
     Ar_ImageURL: str = data['Ar_ImageURL']
 
-    Ar_DeathDay = data.get('Ar_DeathDay', "") 
+    Ar_DeathDay = data.get('Ar_DeathDay', "")
+    Ar_CountryBirth = data.get('Ar_CountryBirth', "")
+    Ar_CountryDeath = data.get('Ar_CountryDeath', "")
+    Ar_Movement = data.get('Ar_Movement', [])
 
     if not check_date(Ar_BirthDay):
         return send_error(status=400, message="Ar_BirthDay must be a valid date")
     
     if Ar_DeathDay and not check_date(Ar_DeathDay):
         return send_error(status=400, message="Ar_BirthDay must be a valid date")
+    
 
     try:
-        new_artist = artist_service.post_artist(Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL, Ar_DeathDay)
+        new_artist = artist_service.post_artist(Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL, Ar_DeathDay, Ar_CountryBirth, Ar_CountryDeath, Ar_Movement)
 
         if new_artist:
             return send_response(status=201, messages="Artist created", data=new_artist)
