@@ -7,6 +7,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+CORS(app)
+
 app.register_blueprint(artist_controller)
 app.register_blueprint(artwork_controller)
 

@@ -137,3 +137,31 @@ def post_inspire_relation(artwork_id: int) -> tuple[Response, int]:
             return send_error(status=500, message="Failed to create inspiration relation. Please try again later.")
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+
+@artwork_controller.route('/<int:artwork_id>', methods=['DELETE'])
+def delete_artwork(artwork_id: int) -> tuple[Response, int]:
+    try:
+        deleted = artwork_service.delete_artwork(artwork_id)
+        if deleted:
+            return send_response(messages="Artwork deleted")
+        else:
+            return send_error(status=404, message="Artwork not found")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+
+@artwork_controller.route('/<int:artwork_id>', methods=['PUT'])
+def update_artwork(artwork_id: int) -> tuple[Response, int]:
+    data = request.get_json()
+    if not data:
+        return send_error(status=400, message="Invalid data")
+
+    try:
+        updated_artwork = artwork_service.update_artwork(artwork_id, data)
+        if updated_artwork:
+            return send_response(messages="Artwork updated", data=updated_artwork)
+        else:
+            return send_error(status=404, message="Artwork not found")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")

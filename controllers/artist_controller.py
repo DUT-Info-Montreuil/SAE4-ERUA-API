@@ -24,7 +24,7 @@ def get_artist_by_id(artist_id: int) -> tuple[Response, int]:
 def post_artist() -> tuple[Response, int]:
 
     # Required field : Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL
-    # Optionnal field : Ar_DeathDay
+    # Optionnal field : Ar_DeathDay, Ar_CountryBirth, Ar_CountryDeath, Ar_Movement
 
     data = request.get_json()
 
@@ -54,16 +54,20 @@ def post_artist() -> tuple[Response, int]:
     Ar_Biography: str = data['Ar_Biography']
     Ar_ImageURL: str = data['Ar_ImageURL']
 
-    Ar_DeathDay = data.get('Ar_DeathDay', "") 
+    Ar_DeathDay = data.get('Ar_DeathDay', "")
+    Ar_CountryBirth = data.get('Ar_CountryBirth', "")
+    Ar_CountryDeath = data.get('Ar_CountryDeath', "")
+    Ar_Movement = data.get('Ar_Movement', [])
 
     if not check_date(Ar_BirthDay):
         return send_error(status=400, message="Ar_BirthDay must be a valid date")
     
     if Ar_DeathDay and not check_date(Ar_DeathDay):
         return send_error(status=400, message="Ar_BirthDay must be a valid date")
+    
 
     try:
-        new_artist = artist_service.post_artist(Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL, Ar_DeathDay)
+        new_artist = artist_service.post_artist(Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL, Ar_DeathDay, Ar_CountryBirth, Ar_CountryDeath, Ar_Movement)
 
         if new_artist:
             return send_response(status=201, messages="Artist created", data=new_artist)
@@ -114,5 +118,39 @@ def post_create_relation(artist_id: int) -> tuple[Response, int]:
             return send_response(status=201, messages="Relation created", data=relation)
         else:
             return send_error(status=500, message="Failed to create created relation. Please try again later.")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+@artist_controller.route('/<int:artist_id>', methods=['PUT'])
+def update_artist(artist_id: int) -> tuple[Response, int]:
+    data = request.get_json()
+
+    if not data:
+        return send_error(status=400, message="No data provided")
+
+    if 'Ar_BirthDay' in data and not check_date(data['Ar_BirthDay']):
+        return send_error(status=400, message="Ar_BirthDay must be a valid date")
+
+    if 'Ar_DeathDay' in data and data['Ar_DeathDay'] and not check_date(data['Ar_DeathDay']):
+        return send_error(status=400, message="Ar_DeathDay must be a valid date")
+
+    try:
+        updated_artist = artist_service.update_artist_by_id(artist_id, data)
+        if updated_artist:
+            return send_response(messages="Artist updated", data=updated_artist)
+        else:
+            return send_error(status=404, message="Artist not found")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
+
+@artist_controller.route('/<int:artist_id>', methods=['DELETE'])
+def delete_artist(artist_id: int) -> tuple[Response, int]:
+    try:
+        deleted = artist_service.delete_artist_by_id(artist_id)
+        if deleted:
+            return send_response(status=200, messages="Artist deleted")
+        else:
+            return send_error(status=404, message="Artist not found")
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")

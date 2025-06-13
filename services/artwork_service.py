@@ -9,12 +9,12 @@ def get_artwork():
     return artwork
 
 
-def get_artwork_by_id(Ar_ArtworkID: int):
+def get_artwork_by_id(Art_ArtworkID: int):
     query = """
-    MATCH (a:Artwork {Ar_ArtworkID: $Ar_ArtworkID})
+    MATCH (a:Artwork {Art_ArtworkID: $Art_ArtworkID})
     RETURN a
     """
-    results = execute_query(query=query, parameters={'Ar_ArtworkID': Ar_ArtworkID})
+    results = execute_query(query=query, parameters={'Art_ArtworkID': Art_ArtworkID})
     if results:
         return results[0]['a']
     return None
@@ -215,4 +215,34 @@ def get_artwork_pagination_info(page_number: int, page_size: int = 16, recherche
         'has_previous': page_number > 1
     }
 
+def delete_artwork(Art_ArtworkID: int) -> bool:
+    query = """
+    MATCH (a:Artwork {Art_ArtworkID: $Art_ArtworkID})
+    DETACH DELETE a
+    RETURN COUNT(a) AS deleted_count
+    """
+    results = execute_query(query=query, parameters={'Art_ArtworkID': Art_ArtworkID})
+    return results and results[0]['deleted_count'] > 0
 
+def update_artwork(Art_ArtworkID: int, data: dict):
+    query = """
+    MATCH (a:Artwork {Art_ArtworkID: $Art_ArtworkID})
+    SET a.Art_Title = $Art_Title,
+        a.Art_Year = $Art_Year,
+        a.Art_Description = $Art_Description,
+        a.Art_ImageURL = $Art_ImageURL,
+        a.Art_Medium = $Art_Medium,
+        a.Art_Dimensions = $Art_Dimensions
+    RETURN a AS Artwork
+    """
+    params = {
+        'Art_ArtworkID': Art_ArtworkID,
+        'Art_Title': data.get('Art_Title', ''),
+        'Art_Year': data.get('Art_Year', ''),
+        'Art_Description': data.get('Art_Description', ''),
+        'Art_ImageURL': data.get('Art_ImageURL', ''),
+        'Art_Medium': data.get('Art_Medium', ''),
+        'Art_Dimensions': data.get('Art_Dimensions', ''),
+    }
+    results = execute_query(query=query, parameters=params)
+    return results[0]['Artwork'] if results else None
