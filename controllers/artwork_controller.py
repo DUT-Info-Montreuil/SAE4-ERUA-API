@@ -67,14 +67,17 @@ def post_artwork() -> tuple[Response, int]:
 @artwork_controller.route('/page/<int:page_number>', methods=['GET'])
 def get_artwork_by_page(page_number: int) -> tuple[Response, int]:
     if page_number < 1:
-        return send_error(status=400, message="page_number is already superior or egal to 1")
+        return send_error(status=400, message="page_number must be >= 1")
 
-    info_artworks = artwork_service.get_artwork_pagination_info(page_number,16)
+    recherche = request.args.get("recherche", "").strip()
 
-    if info_artworks:
+    info_artworks = artwork_service.get_artwork_pagination_info(page_number, 16, recherche)
+
+    if info_artworks and info_artworks['artworks']:
         return send_response(data=info_artworks)
     else:
         return send_error(status=404, message="Artworks not found")
+
 
 
 @artwork_controller.route('/<int:artwork_id>/inspires', methods=['GET'])

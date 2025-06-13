@@ -55,63 +55,72 @@ def get_artist_by_id(Ar_ArtistID: int):
         return results[0]['a']
     return None
 
-def get_artist_by_page(page_number: int, page_size: int = 16):
+def get_artist_by_page(page_number: int, page_size: int = 16, recherche: str = ""):
     """
-    Récupère les artists par page avec pagination.
-
-    Args:
-        page_number (int): Numéro de la page (commence à 1)
-        page_size (int): Nombre d'artists par page (par défaut 16)
-
-    Returns:
-        list: Liste des artists pour la page demandée
+    Récupère les artistes par page avec recherche optionnelle.
     """
-    # Validation du numéro de page
     if page_number < 1:
         raise ValueError("Le numéro de page doit être supérieur ou égal à 1")
 
     offset = (page_number - 1) * page_size
 
-    query = f"""
-    MATCH (artist:artist) 
-    RETURN artist 
-    ORDER BY artist.id 
-    SKIP {offset} 
-    LIMIT {page_size}
-    """
-    results = execute_query(query=query)
+    if recherche:
+        query = f"""
+        MATCH (artist:Artist)
+        WHERE toLower(artist.nom) CONTAINS toLower($recherche)
+           OR toLower(artist.prenom) CONTAINS toLower($recherche)
+        RETURN artist
+        ORDER BY artist.id
+        SKIP {offset}
+        LIMIT {page_size}
+        """
+        parameters = {"recherche": recherche}
+    else:
+        query = f"""
+        MATCH (artist:Artist)
+        RETURN artist
+        ORDER BY artist.id
+        SKIP {offset}
+        LIMIT {page_size}
+        """
+        parameters = {}
+
+    results = execute_query(query=query, parameters=parameters)
     artist_list = [record['artist'] for record in results]
 
     return artist_list
 
 
-def get_total_artist_count():
-    """
-    Récupère le nombre total d'artists pour calculer le nombre de pages.
 
-    Returns:
-        int: Nombre total d'artists
+def get_total_artist_count(recherche: str = ""):
     """
-    query = "MATCH (artist:artist) RETURN count(artist) as total"
-    results = execute_query(query=query)
+    Récupère le nombre total d'artistes (avec ou sans filtre).
+    """
+    if recherche:
+        query = """
+        MATCH (artist:Artist)
+        WHERE toLower(artist.nom) CONTAINS toLower($recherche)
+           OR toLower(artist.prenom) CONTAINS toLower($recherche)
+        RETURN count(artist) AS total
+        """
+        parameters = {"recherche": recherche}
+    else:
+        query = "MATCH (artist:Artist) RETURN count(artist) as total"
+        parameters = {}
+
+    results = execute_query(query=query, parameters=parameters)
     return results[0]['total'] if results else 0
 
 
-def get_artist_pagination_info(page_number: int, page_size: int = 16):
+
+def get_artist_pagination_info(page_number: int, page_size: int = 16, recherche: str = ""):
     """
-    Récupère les artists avec des informations de pagination.
-
-    Args:
-        page_number (int): Numéro de la page
-        page_size (int): Nombre d'artists par page
-
-    Returns:
-        dict: Dictionnaire contenant les artists et les infos de pagination
+    Récupère les artistes avec infos de pagination et filtre optionnel.
     """
-    total_count = get_total_artist_count()
-    total_pages = (total_count + page_size - 1) // page_size  # Calcul du nombre total de pages
+    total_count = get_total_artist_count(recherche)
+    total_pages = (total_count + page_size - 1) // page_size
 
-    artist_list = get_artist_by_page(page_number, page_size)
+    artist_list = get_artist_by_page(page_number, page_size, recherche)
 
     return {
         'artists': artist_list,
@@ -122,6 +131,8 @@ def get_artist_pagination_info(page_number: int, page_size: int = 16):
         'has_next': page_number < total_pages,
         'has_previous': page_number > 1
     }
+
+
 def post_create_relation(Ar_ArtistID: int, Art_ArtworkID: int):
     """
     Crée une relation 'CREATE' entre un artiste et une œuvre
