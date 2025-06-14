@@ -156,6 +156,171 @@ def get_graph(
     return results
 
 
+def get_subgraph(
+        central_node_id: int,
+        nationalities: Optional[List[str]] = None,
+        mediums: Optional[List[str]] = None,
+        movements: Optional[List[str]] = None,
+        year_min: Optional[str] = None,
+        year_max: Optional[str] = None,
+        exclude_artists: bool = False,
+        exclude_artworks: bool = False
+) -> List[Dict[str, Any]]:
+    """
+    Récupère un sous-graphe centré sur un nœud spécifique avec filtres optionnels
+
+    Args:
+        central_node_id: ID du nœud central
+        nationalities: Liste des nationalités d'artistes à inclure
+        mediums: Liste des médiums d'œuvres à inclure
+        movements: Liste des mouvements artistiques à inclure
+        year_min: Année minimale (pour œuvres et artistes)
+        year_max: Année maximale (pour œuvres et artistes)
+        exclude_artists: Exclure les artistes du résultat
+        exclude_artworks: Exclure les œuvres du résultat
+
+    Returns:
+        Liste contenant les données du sous-graphe filtré
+    """
+
+    # Construire les conditions de filtrage pour les artistes
+    artist_filter_conditions = []
+
+    if nationalities:
+        artist_filter_conditions.append("node.Ar_Nationality IN $nationalities")
+
+    if movements:
+        artist_filter_conditions.append("ANY(movement IN node.Ar_Movement WHERE movement IN $movements)")
+
+    if year_min is not None:
+        artist_filter_conditions.append("node.Ar_BirthDay >= $year_min")
+
+    if year_max is not None:
+        artist_filter_conditions.append("node.Ar_BirthDay <= $year_max")
+
+    # Construire les conditions de filtrage pour les œuvres
+    artwork_filter_conditions = []
+
+    if mediums:
+        artwork_filter_conditions.append("node.Art_Medium IN $mediums")
+
+    if year_min is not None:
+        artwork_filter_conditions.append("node.Art_Year >= $year_min_art")
+
+    if year_max is not None:
+        artwork_filter_conditions.append("node.Art_Year <= $year_max_art")
+
+    # Construire les clauses de filtrage
+    artist_filter = ""
+    if artist_filter_conditions:
+        artist_filter = f"AND ({' AND '.join(artist_filter_conditions)})"
+
+    artwork_filter = ""
+    if artwork_filter_conditions:
+        artwork_filter = f"AND ({' AND '.join(artwork_filter_conditions)})"
+
+    # Construire la requête principale
+    query = f"""
+    WITH $centralNodeId AS centralNodeId
+
+    MATCH (centralNode)
+    WHERE id(centralNode) = centralNodeId
+
+    CALL {{
+      WITH centralNode
+
+      MATCH path = (centralNode)-[*]->(node)
+      WHERE length(path) > 0
+        AND (
+          (node:Artist {artist_filter if not exclude_artists else "AND FALSE"})
+          OR 
+          (node:Artwork {artwork_filter if not exclude_artworks else "AND FALSE"})
+        )
+
+      RETURN collect(DISTINCT node) AS outgoingNodes
+    }}
+
+    CALL {{
+      WITH centralNode
+
+      MATCH path = (node)-[*]->(centralNode)
+      WHERE length(path) > 0
+        AND (
+          (node:Artist {artist_filter if not exclude_artists else "AND FALSE"})
+          OR 
+          (node:Artwork {artwork_filter if not exclude_artworks else "AND FALSE"})
+        )
+
+      RETURN collect(DISTINCT node) AS incomingNodes
+    }}
+
+    WITH centralNode, outgoingNodes + incomingNodes + [centralNode] AS selectedNodes
+
+    CALL {{
+      WITH selectedNodes
+      UNWIND selectedNodes AS node
+      WITH DISTINCT node
+      WHERE node:Artist {artist_filter if not exclude_artists else "AND FALSE"}
+      RETURN collect({{
+        data: node,
+        id: id(node),
+        type: 'Artist'
+      }}) AS artists
+    }}
+
+    CALL {{
+      WITH selectedNodes
+      UNWIND selectedNodes AS node
+      WITH DISTINCT node
+      WHERE node:Artwork {artwork_filter if not exclude_artworks else "AND FALSE"}
+      RETURN collect({{
+        data: node,
+        id: id(node),
+        type: 'Artwork'
+      }}) AS artworks
+    }}
+
+    CALL {{
+      WITH selectedNodes
+      UNWIND selectedNodes AS source
+      UNWIND selectedNodes AS target
+      MATCH (source)-[r]->(target)
+      RETURN collect(DISTINCT {{
+        source: id(source),
+        target: id(target)
+      }}) AS relations
+    }}
+
+    RETURN artists, artworks, relations
+    """
+
+    # Construire les paramètres
+    params = {
+        'centralNodeId': central_node_id
+    }
+
+    if nationalities:
+        params['nationalities'] = nationalities
+
+    if mediums:
+        params['mediums'] = mediums
+
+    if movements:
+        params['movements'] = movements
+
+    if year_min is not None:
+        params['year_min'] = year_min + "-01-01"
+        params['year_min_art'] = year_min + "-01-01"
+
+    if year_max is not None:
+        params['year_max'] = year_max + "-01-01"
+        params['year_max_art'] = year_max + "-01-01"
+
+    # Exécuter la requête
+    results = execute_query(query=query, parameters=params)
+
+    return results
+
 def get_filter_options() -> Dict[str, List[str]]:
     """
     Récupère toutes les options disponibles pour les filtres
