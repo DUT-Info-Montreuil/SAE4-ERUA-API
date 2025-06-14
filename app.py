@@ -1,4 +1,6 @@
 from flask import Flask, jsonify, request, Blueprint
+
+from controllers.graph_controller import graph_controller
 from controllers.artist_controller import artist_controller
 from controllers.artwork_controller import artwork_controller
 from controllers.document_controller import document_controller
@@ -13,6 +15,7 @@ CORS(app)
 app.register_blueprint(artist_controller)
 app.register_blueprint(artwork_controller)
 app.register_blueprint(document_controller)
+app.register_blueprint(graph_controller)
 
 
 @app.errorhandler(500)
