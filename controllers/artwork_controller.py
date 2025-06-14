@@ -22,9 +22,8 @@ def get_artwork_by_id(artwork_id: int) -> tuple[Response, int]:
 
 @artwork_controller.route('', methods=['POST'])
 def post_artwork() -> tuple[Response, int]:
-
-    # Required field : Art_Title, Art_Year, Art_Description, Art_ImageURL, Art_Medium, Art_Dimensions
-    # Optionnal field : NULL
+    # Required fields : Art_Title, Art_Year, Art_Description, Art_ImageURL, Art_Medium, Art_Dimensions
+    # Optional field : Ar_ArtistID
 
     data = request.get_json()
 
@@ -53,12 +52,16 @@ def post_artwork() -> tuple[Response, int]:
     Art_Medium: str = data['Art_Medium']
     Art_Dimensions: str = data['Art_Dimensions']
 
+    Ar_ArtistID: int = data.get('Ar_ArtistID', "")
+
     if not check_date(Art_Year):
         return send_error(status=400, message="Art_Year must be a valid date")
 
     try:
-        new_artwork = artwork_service.post_artwork(Art_Title, Art_Year, Art_Description, Art_ImageURL, Art_Medium,
-                                                   Art_Dimensions)
+        new_artwork = artwork_service.post_artwork(
+            Art_Title, Art_Year, Art_Description, Art_ImageURL, Art_Medium,
+            Art_Dimensions, Ar_ArtistID
+        )
         return send_response(status=201, messages="Artwork created", data=new_artwork)
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
@@ -77,6 +80,7 @@ def get_artwork_by_page(page_number: int) -> tuple[Response, int]:
         return send_response(data=info_artworks)
     else:
         return send_error(status=404, message="Artworks not found")
+
 
 
 

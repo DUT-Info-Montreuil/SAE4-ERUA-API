@@ -148,6 +148,38 @@ def get_artist_with_artworks(Ar_ArtistID: int):
         }
     return None
 
+def delete_relation(Ar_ArtistID: int, Art_ArtworkID: int):
+    query = """
+    MATCH (artist:Artist {Ar_ArtistID: $Ar_ArtistID})-[r:CREATED]->(artwork:Artwork {Art_ArtworkID: $Art_ArtworkID})
+    DELETE r
+    RETURN artist, artwork
+    """
+    params = {
+        'Ar_ArtistID': Ar_ArtistID,
+        'Art_ArtworkID': Art_ArtworkID
+    }
+    results = execute_query(query=query, parameters=params)
+    return results[0] if results else None
+
+def update_relation(old_artist_id: int, new_artist_id: int, artwork_id: int):
+    query = """
+    MATCH (old_artist:Artist {Ar_ArtistID: $old_artist_id})-[r:CREATED]->(artwork:Artwork {Art_ArtworkID: $artwork_id})
+    DELETE r
+    WITH artwork
+    MATCH (new_artist:Artist {Ar_ArtistID: $new_artist_id})
+    MERGE (new_artist)-[:CREATED]->(artwork)
+    RETURN new_artist, artwork
+    """
+    params = {
+        'old_artist_id': old_artist_id,
+        'new_artist_id': new_artist_id,
+        'artwork_id': artwork_id
+    }
+    results = execute_query(query=query, parameters=params)
+    return results[0] if results else None
+
+
+
 
 
 def get_artist_by_page(page_number: int, page_size: int = 16, recherche: str = ""):

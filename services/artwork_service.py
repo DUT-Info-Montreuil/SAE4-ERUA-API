@@ -21,7 +21,7 @@ def get_artwork_by_id(Art_ArtworkID: int):
 
 
 def post_artwork(Art_Title: str, Art_Year: int, Art_Description: str, Art_ImageURL: str, Art_Medium: str,
-                 Art_Dimensions: str):
+                 Art_Dimensions: str, Ar_ArtistID: int = ""):
     query = """
     MERGE (c:Counter {name: 'Art_ArtworkID'})
     ON CREATE SET c.count = 0
@@ -29,7 +29,7 @@ def post_artwork(Art_Title: str, Art_Year: int, Art_Description: str, Art_ImageU
     WITH c.count AS new_id
     CREATE (aw:Artwork {Art_ArtworkID: new_id, Art_Title: $Art_Title, Art_Year: $Art_Year, 
     Art_Description: $Art_Description, Art_ImageURL: $Art_ImageURL, Art_Medium: $Art_Medium, Art_Dimensions: 
-    $Art_Dimensions})
+    $Art_Dimensions, Ar_ArtistID: $Ar_ArtistID})
     RETURN aw AS Artwork
     """
     params = {
@@ -38,7 +38,8 @@ def post_artwork(Art_Title: str, Art_Year: int, Art_Description: str, Art_ImageU
         'Art_Description': Art_Description,
         'Art_ImageURL': Art_ImageURL,
         'Art_Medium': Art_Medium,
-        'Art_Dimensions': Art_Dimensions
+        'Art_Dimensions': Art_Dimensions,
+        'Ar_ArtistID': Ar_ArtistID
     }
 
     results = execute_query(query=query, parameters=params)
@@ -227,22 +228,25 @@ def delete_artwork(Art_ArtworkID: int) -> bool:
 def update_artwork(Art_ArtworkID: int, data: dict):
     query = """
     MATCH (a:Artwork {Art_ArtworkID: $Art_ArtworkID})
-    SET a.Art_Title = $Art_Title,
-        a.Art_Year = $Art_Year,
-        a.Art_Description = $Art_Description,
-        a.Art_ImageURL = $Art_ImageURL,
-        a.Art_Medium = $Art_Medium,
-        a.Art_Dimensions = $Art_Dimensions
+    SET a.Art_Title = coalesce($Art_Title, a.Art_Title),
+        a.Art_Year = coalesce($Art_Year, a.Art_Year),
+        a.Art_Description = coalesce($Art_Description, a.Art_Description),
+        a.Art_ImageURL = coalesce($Art_ImageURL, a.Art_ImageURL),
+        a.Art_Medium = coalesce($Art_Medium, a.Art_Medium),
+        a.Art_Dimensions = coalesce($Art_Dimensions, a.Art_Dimensions),
+        a.Ar_ArtistID = coalesce($Ar_ArtistID, a.Ar_ArtistID)
     RETURN a AS Artwork
     """
     params = {
         'Art_ArtworkID': Art_ArtworkID,
-        'Art_Title': data.get('Art_Title', ''),
-        'Art_Year': data.get('Art_Year', ''),
-        'Art_Description': data.get('Art_Description', ''),
-        'Art_ImageURL': data.get('Art_ImageURL', ''),
-        'Art_Medium': data.get('Art_Medium', ''),
-        'Art_Dimensions': data.get('Art_Dimensions', ''),
+        'Art_Title': data.get('Art_Title'),
+        'Art_Year': data.get('Art_Year'),
+        'Art_Description': data.get('Art_Description'),
+        'Art_ImageURL': data.get('Art_ImageURL'),
+        'Art_Medium': data.get('Art_Medium'),
+        'Art_Dimensions': data.get('Art_Dimensions'),
+        'Ar_ArtistID': data.get('Ar_ArtistID')
     }
     results = execute_query(query=query, parameters=params)
     return results[0]['Artwork'] if results else None
+
