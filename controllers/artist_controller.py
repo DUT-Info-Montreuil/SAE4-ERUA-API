@@ -152,3 +152,39 @@ def delete_artist(artist_id: int) -> tuple[Response, int]:
             return send_error(status=404, message="Artist not found")
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+    
+
+@artist_controller.route('/<int:artist_id>/artworks/<int:artwork_id>', methods=['DELETE'])
+def delete_create_relation(artist_id: int, artwork_id: int) -> tuple[Response, int]:
+    try:
+        relation = artist_service.delete_relation(artist_id, artwork_id)
+
+        if relation:
+            return send_response(status=200, messages="Relation deleted", data=relation)
+        else:
+            return send_error(status=404, message="Relation not found")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+    
+
+@artist_controller.route('/<int:artist_id>/artworks/<int:artwork_id>', methods=['PUT'])
+def update_create_relation(artist_id: int, artwork_id: int) -> tuple[Response, int]:
+    data = request.get_json()
+
+    if not data or 'Ar_ArtistID' not in data:
+        return send_error(status=400, message="'Ar_ArtistID' is required")
+
+    new_artist_id = data['Ar_ArtistID']
+
+    try:
+        result = artist_service.update_relation(artist_id, new_artist_id, artwork_id)
+
+        if result:
+            return send_response(status=200, messages="Relation updated", data=result)
+        else:
+            return send_error(status=404, message="Relation not found or update failed")
+    except Exception as e:
+        return send_error(status=500, message="An unexpected error occurred.")
+
+
+
