@@ -23,58 +23,47 @@ def get_artist_by_id(artist_id: int) -> tuple[Response, int]:
 @artist_controller.route('', methods=['POST'])
 def post_artist() -> tuple[Response, int]:
 
-    # Required field : Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL
-    # Optionnal field : Ar_DeathDay, Ar_CountryBirth, Ar_CountryDeath, Ar_Movement
-
     data = request.get_json()
 
-    if not data or 'Ar_FirstName' not in data:
-        return send_error(status=400, message="Ar_FirstName is required")
-    
-    if not data or 'Ar_LastName' not in data:
-        return send_error(status=400, message="Ar_LastName is required")
-    
-    if not data or 'Ar_BirthDay' not in data:
-        return send_error(status=400, message="Ar_BirthDay is required")
-    
-    if not data or 'Ar_Nationality' not in data:
-        return send_error(status=400, message="Ar_Nationality is required")
-    
-    if not data or 'Ar_Biography' not in data:
-        return send_error(status=400, message="Ar_Biography is required")
-    
-    if not data or 'Ar_ImageURL' not in data:
-        return send_error(status=400, message="Ar_ImageURL is required")
+    required_fields = ['Ar_FirstName', 'Ar_LastName', 'Ar_BirthDay', 'Ar_Nationality', 'Ar_Biography', 'Ar_ImageURL']
+    for field in required_fields:
+        if not data or field not in data:
+            return send_error(status=400, message=f"{field} is required")
 
-    
-    Ar_FirstName: str = data['Ar_FirstName']
-    Ar_LastName: str = data['Ar_LastName']
-    Ar_BirthDay: str = data['Ar_BirthDay']
-    Ar_Nationality: str = data['Ar_Nationality']
-    Ar_Biography: str = data['Ar_Biography']
-    Ar_ImageURL: str = data['Ar_ImageURL']
+    # Récupération des champs
+    Ar_FirstName = data['Ar_FirstName']
+    Ar_LastName = data['Ar_LastName']
+    Ar_BirthDay = data['Ar_BirthDay']
+    Ar_Nationality = data['Ar_Nationality']
+    Ar_Biography = data['Ar_Biography']
+    Ar_ImageURL = data['Ar_ImageURL']
 
     Ar_DeathDay = data.get('Ar_DeathDay', "")
     Ar_CountryBirth = data.get('Ar_CountryBirth', "")
     Ar_CountryDeath = data.get('Ar_CountryDeath', "")
     Ar_Movement = data.get('Ar_Movement', [])
 
+    # Vérification des dates
     if not check_date(Ar_BirthDay):
         return send_error(status=400, message="Ar_BirthDay must be a valid date")
-    
+
     if Ar_DeathDay and not check_date(Ar_DeathDay):
-        return send_error(status=400, message="Ar_BirthDay must be a valid date")
-    
+        return send_error(status=400, message="Ar_DeathDay must be a valid date")
 
     try:
-        new_artist = artist_service.post_artist(Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography, Ar_ImageURL, Ar_DeathDay, Ar_CountryBirth, Ar_CountryDeath, Ar_Movement)
+        new_artist = artist_service.post_artist(
+            Ar_FirstName, Ar_LastName, Ar_BirthDay, Ar_Nationality, Ar_Biography,
+            Ar_ImageURL, Ar_DeathDay, Ar_CountryBirth, Ar_CountryDeath, Ar_Movement
+        )
 
         if new_artist:
             return send_response(status=201, messages="Artist created", data=new_artist)
         else:
             return send_error(status=500, message="Failed to create artist. Please try again later.")
+
     except Exception as e:
         return send_error(status=500, message="An unexpected error occurred. Please try again later.")
+
 
 @artist_controller.route('/page/<int:page_number>', methods=['GET'])
 def get_artist_by_page(page_number: int) -> tuple[Response, int]:

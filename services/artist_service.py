@@ -14,11 +14,11 @@ def post_artist(
     Ar_Biography: str,
     Ar_ImageURL: str,
     Ar_DeathDay: str = "",
-    Ar_DeathYear: int = None,
     Ar_CountryBirth: str = "",
     Ar_CountryDeath: str = "",
     Ar_Movement: list = None
 ):
+
     query = """
     MERGE (c:Counter {name: 'Ar_ArtistID'})
     ON CREATE SET c.count = 0
@@ -33,7 +33,6 @@ def post_artist(
         Ar_Biography: $Ar_Biography,
         Ar_ImageURL: $Ar_ImageURL,
         Ar_DeathDay: $Ar_DeathDay,
-        Ar_DeathYear: $Ar_DeathYear,
         Ar_CountryBirth: $Ar_CountryBirth,
         Ar_CountryDeath: $Ar_CountryDeath,
         Ar_Movement: $Ar_Movement
@@ -48,7 +47,6 @@ def post_artist(
         'Ar_Biography': Ar_Biography,
         'Ar_ImageURL': Ar_ImageURL,
         'Ar_DeathDay': Ar_DeathDay,
-        'Ar_DeathYear': Ar_DeathYear,
         'Ar_CountryBirth': Ar_CountryBirth,
         'Ar_CountryDeath': Ar_CountryDeath,
         'Ar_Movement': Ar_Movement or []
