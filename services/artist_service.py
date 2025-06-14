@@ -5,26 +5,6 @@ def get_artists():
     results = execute_query(query=query)
     return [record['Artist'] for record in results]
 
-def get_artist_by_id(Ar_ArtistID: int):
-    query = "MATCH (a:Artist {Ar_ArtistID: $Ar_ArtistID}) RETURN a"
-    results = execute_query(query=query, parameters={'Ar_ArtistID': Ar_ArtistID})
-    return results[0]['a'] if results else None
-
-def get_artist_by_page(page_number: int, page_size: int = 16):
-    if page_number < 1:
-        raise ValueError("Le numéro de page doit être supérieur ou égal à 1")
-
-    offset = (page_number - 1) * page_size
-    query = f"""
-    MATCH (artist:Artist) 
-    RETURN artist 
-    ORDER BY artist.Ar_ArtistID 
-    SKIP {offset} 
-    LIMIT {page_size}
-    """
-    results = execute_query(query=query)
-    return [record['artist'] for record in results]
-
 
 def post_artist(
     Ar_FirstName: str,
@@ -76,75 +56,6 @@ def post_artist(
     results = execute_query(query=query, parameters=params)
     return results[0]['a'] if results else None
 
-
-def update_artist_by_id(Ar_ArtistID: int, fields: dict):
-    query = """
-    MATCH (a:Artist {Ar_ArtistID: $Ar_ArtistID})
-    SET
-        a.Ar_FirstName = coalesce($Ar_FirstName, a.Ar_FirstName),
-        a.Ar_LastName = coalesce($Ar_LastName, a.Ar_LastName),
-        a.Ar_BirthDay = coalesce($Ar_BirthDay, a.Ar_BirthDay),
-        a.Ar_Nationality = coalesce($Ar_Nationality, a.Ar_Nationality),
-        a.Ar_Biography = coalesce($Ar_Biography, a.Ar_Biography),
-        a.Ar_ImageURL = coalesce($Ar_ImageURL, a.Ar_ImageURL),
-        a.Ar_DeathDay = coalesce($Ar_DeathDay, a.Ar_DeathDay),
-        a.Ar_DeathYear = coalesce($Ar_DeathYear, a.Ar_DeathYear),
-        a.Ar_CountryBirth = coalesce($Ar_CountryBirth, a.Ar_CountryBirth),
-        a.Ar_CountryDeath = coalesce($Ar_CountryDeath, a.Ar_CountryDeath),
-        a.Ar_Movement = coalesce($Ar_Movement, a.Ar_Movement)
-    RETURN a
-    """
-    params = {
-        'Ar_ArtistID': Ar_ArtistID,
-        'Ar_FirstName': fields.get('Ar_FirstName'),
-        'Ar_LastName': fields.get('Ar_LastName'),
-        'Ar_BirthDay': fields.get('Ar_BirthDay'),
-        'Ar_Nationality': fields.get('Ar_Nationality'),
-        'Ar_Biography': fields.get('Ar_Biography'),
-        'Ar_ImageURL': fields.get('Ar_ImageURL'),
-        'Ar_DeathDay': fields.get('Ar_DeathDay'),
-        'Ar_DeathYear': fields.get('Ar_DeathYear'),
-        'Ar_CountryBirth': fields.get('Ar_CountryBirth'),
-        'Ar_CountryDeath': fields.get('Ar_CountryDeath'),
-        'Ar_Movement': fields.get('Ar_Movement')
-    }
-    results = execute_query(query=query, parameters=params)
-    return results[0]['a'] if results else None
-
-
-def update_artist_by_id(Ar_ArtistID: int, fields: dict):
-    query = """
-    MATCH (a:Artist {Ar_ArtistID: $Ar_ArtistID})
-    SET
-        a.Ar_FirstName = coalesce($Ar_FirstName, a.Ar_FirstName),
-        a.Ar_LastName = coalesce($Ar_LastName, a.Ar_LastName),
-        a.Ar_BirthDay = coalesce($Ar_BirthDay, a.Ar_BirthDay),
-        a.Ar_Nationality = coalesce($Ar_Nationality, a.Ar_Nationality),
-        a.Ar_Biography = coalesce($Ar_Biography, a.Ar_Biography),
-        a.Ar_ImageURL = coalesce($Ar_ImageURL, a.Ar_ImageURL),
-        a.Ar_DeathDay = coalesce($Ar_DeathDay, a.Ar_DeathDay),
-        a.Ar_DeathYear = coalesce($Ar_DeathYear, a.Ar_DeathYear),
-        a.Ar_CountryBirth = coalesce($Ar_CountryBirth, a.Ar_CountryBirth),
-        a.Ar_CountryDeath = coalesce($Ar_CountryDeath, a.Ar_CountryDeath),
-        a.Ar_Movement = coalesce($Ar_Movement, a.Ar_Movement)
-    RETURN a
-    """
-    params = {
-        'Ar_ArtistID': Ar_ArtistID,
-        'Ar_FirstName': fields.get('Ar_FirstName'),
-        'Ar_LastName': fields.get('Ar_LastName'),
-        'Ar_BirthDay': fields.get('Ar_BirthDay'),
-        'Ar_Nationality': fields.get('Ar_Nationality'),
-        'Ar_Biography': fields.get('Ar_Biography'),
-        'Ar_ImageURL': fields.get('Ar_ImageURL'),
-        'Ar_DeathDay': fields.get('Ar_DeathDay'),
-        'Ar_DeathYear': fields.get('Ar_DeathYear'),
-        'Ar_CountryBirth': fields.get('Ar_CountryBirth'),
-        'Ar_CountryDeath': fields.get('Ar_CountryDeath'),
-        'Ar_Movement': fields.get('Ar_Movement')
-    }
-    results = execute_query(query=query, parameters=params)
-    return results[0]['a'] if results else None
 
 def delete_artist_by_id(Ar_ArtistID: int):
     query = """
@@ -202,73 +113,7 @@ def get_artist_by_id(Ar_ArtistID: int):
         return results[0]['a']
     return None
 
-def get_artist_by_page(page_number: int, page_size: int = 16):
-    """
-    Récupère les artists par page avec pagination.
 
-    Args:
-        page_number (int): Numéro de la page (commence à 1)
-        page_size (int): Nombre d'artists par page (par défaut 16)
-
-    Returns:
-        list: Liste des artists pour la page demandée
-    """
-    # Validation du numéro de page
-    if page_number < 1:
-        raise ValueError("Le numéro de page doit être supérieur ou égal à 1")
-
-    offset = (page_number - 1) * page_size
-
-    query = f"""
-    MATCH (artist:artist) 
-    RETURN artist 
-    ORDER BY artist.id 
-    SKIP {offset} 
-    LIMIT {page_size}
-    """
-    results = execute_query(query=query)
-    artist_list = [record['artist'] for record in results]
-
-    return artist_list
-
-
-def get_total_artist_count():
-    """
-    Récupère le nombre total d'artists pour calculer le nombre de pages.
-
-    Returns:
-        int: Nombre total d'artists
-    """
-    query = "MATCH (artist:artist) RETURN count(artist) as total"
-    results = execute_query(query=query)
-    return results[0]['total'] if results else 0
-
-
-def get_artist_pagination_info(page_number: int, page_size: int = 16):
-    """
-    Récupère les artists avec des informations de pagination.
-
-    Args:
-        page_number (int): Numéro de la page
-        page_size (int): Nombre d'artists par page
-
-    Returns:
-        dict: Dictionnaire contenant les artists et les infos de pagination
-    """
-    total_count = get_total_artist_count()
-    total_pages = (total_count + page_size - 1) // page_size  # Calcul du nombre total de pages
-
-    artist_list = get_artist_by_page(page_number, page_size)
-
-    return {
-        'artists': artist_list,
-        'current_page': page_number,
-        'page_size': page_size,
-        'total_count': total_count,
-        'total_pages': total_pages,
-        'has_next': page_number < total_pages,
-        'has_previous': page_number > 1
-    }
 def post_create_relation(Ar_ArtistID: int, Art_ArtworkID: int):
     """
     Crée une relation 'CREATE' entre un artiste et une œuvre
@@ -307,7 +152,7 @@ def get_artist_with_artworks(Ar_ArtistID: int):
 
 def get_artist_by_page(page_number: int, page_size: int = 16, recherche: str = ""):
     """
-    Récupère les artistes par page avec recherche optionnelle.
+    Récupère les artistes par page avec recherche optionnelle incluant nom, nationalité, dates et mouvements.
     """
     if page_number < 1:
         raise ValueError("Le numéro de page doit être supérieur ou égal à 1")
@@ -317,10 +162,14 @@ def get_artist_by_page(page_number: int, page_size: int = 16, recherche: str = "
     if recherche:
         query = f"""
         MATCH (artist:Artist)
-        WHERE toLower(artist.nom) CONTAINS toLower($recherche)
-           OR toLower(artist.prenom) CONTAINS toLower($recherche)
+        WHERE toString(artist.Ar_BirthDay) CONTAINS toString($recherche)
+           OR toString(artist.Ar_DeathYear) CONTAINS toString($recherche)
+           OR any(mov IN artist.Ar_Movement WHERE toLower(mov) CONTAINS toLower($recherche))
+           OR toLower(artist.Ar_LastName) CONTAINS toLower($recherche)
+           OR toLower(artist.Ar_FirstName) CONTAINS toLower($recherche)
+           OR toLower(artist.Ar_Nationality) CONTAINS toLower($recherche)
         RETURN artist
-        ORDER BY artist.id
+        ORDER BY artist.Ar_ArtistID
         SKIP {offset}
         LIMIT {page_size}
         """
@@ -329,7 +178,7 @@ def get_artist_by_page(page_number: int, page_size: int = 16, recherche: str = "
         query = f"""
         MATCH (artist:Artist)
         RETURN artist
-        ORDER BY artist.id
+        ORDER BY artist.Ar_ArtistID
         SKIP {offset}
         LIMIT {page_size}
         """
@@ -339,6 +188,7 @@ def get_artist_by_page(page_number: int, page_size: int = 16, recherche: str = "
     artist_list = [record['artist'] for record in results]
 
     return artist_list
+
 
 
 

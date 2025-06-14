@@ -153,10 +153,10 @@ def get_artwork_by_page(page_number: int, page_size: int = 16,recherche: str = "
     if recherche:
         query = f"""
             MATCH (artwork:Artwork)
-            WHERE toLower(artwork.title) CONTAINS toLower($recherche)
+            WHERE toLower(artwork.Art_Title) CONTAINS toLower($recherche)
                OR toLower(artwork.artist) CONTAINS toLower($recherche)
             RETURN artwork
-            ORDER BY artwork.id
+            ORDER BY artwork.Art_ArtworkID
             SKIP {offset}
             LIMIT {page_size}
             """
@@ -165,7 +165,7 @@ def get_artwork_by_page(page_number: int, page_size: int = 16,recherche: str = "
         query = f"""
             MATCH (artwork:Artwork)
             RETURN artwork
-            ORDER BY artwork.id
+            ORDER BY artwork.Art_ArtworkID
             SKIP {offset}
             LIMIT {page_size}
             """
@@ -182,7 +182,7 @@ def get_total_artwork_count(recherche: str = ""):
     if recherche:
         query = """
         MATCH (artwork:Artwork)
-        WHERE toLower(artwork.title) CONTAINS toLower($recherche)
+        WHERE toLower(artwork.Art_Title) CONTAINS toLower($recherche)
            OR toLower(artwork.artist) CONTAINS toLower($recherche)
         RETURN count(artwork) AS total
         """
