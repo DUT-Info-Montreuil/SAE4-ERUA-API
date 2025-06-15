@@ -53,20 +53,49 @@ def post_inspire_relation(source_artwork_id: int, inspired_artwork_id: int):
     Crée une relation 'INSPIRE' entre deux œuvres
     source_artwork_id: l'œuvre qui inspire
     inspired_artwork_id: l'œuvre inspirée
-    """
-    query = """
-    MATCH (source:Artwork {Art_ArtworkID: $source_artwork_id})
-    MATCH (inspired:Artwork {Art_ArtworkID: $inspired_artwork_id})
-    MERGE (source)-[r:INSPIRE]->(inspired)
-    RETURN r, source, inspired
+
+    Raises:
+        ValueError: Si la relation existe déjà ou si les œuvres n'existent pas
     """
 
-    params = {
+    # Vérifier que les deux œuvres existent et qu'il n'y a pas déjà de relation
+    check_query = """
+    MATCH (source:Artwork {Art_ArtworkID: $source_artwork_id})
+    MATCH (inspired:Artwork {Art_ArtworkID: $inspired_artwork_id})
+    OPTIONAL MATCH (source)-[existing:INSPIRE]-(inspired)
+    RETURN source, inspired, existing
+    """
+
+    check_params = {
         'source_artwork_id': source_artwork_id,
         'inspired_artwork_id': inspired_artwork_id
     }
 
-    results = execute_query(query=query, parameters=params)
+    check_results = execute_query(query=check_query, parameters=check_params)
+
+    if not check_results:
+        return None
+
+    result = check_results[0]
+
+    # Vérifier si la relation existe déjà
+    if result.get('existing') is not None:
+        return None
+
+    # Créer la relation si elle n'existe pas
+    create_query = """
+    MATCH (source:Artwork {Art_ArtworkID: $source_artwork_id})
+    MATCH (inspired:Artwork {Art_ArtworkID: $inspired_artwork_id})
+    CREATE (source)-[r:INSPIRE]->(inspired)
+    RETURN r, source, inspired
+    """
+
+    create_params = {
+        'source_artwork_id': source_artwork_id,
+        'inspired_artwork_id': inspired_artwork_id
+    }
+
+    results = execute_query(query=create_query, parameters=create_params)
     return results[0] if results else None
 
 
